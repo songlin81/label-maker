@@ -51,3 +51,6 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Memo
+- label-maker-4103139:~/label-maker{master}$ eas build --profile production --platform android
