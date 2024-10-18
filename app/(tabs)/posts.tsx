@@ -128,11 +128,9 @@ export default function PostsScreen() {
             <View collapsable={false} >
               <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
             </View>
-            <View style={styles.vcontainer}>
-              <View style={styles.optionsRow}>
-                <IconButton icon="refresh" label="Reset" onPress={onReset} />
-                <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
-              </View>
+            <View style={styles.optionsRow}>
+              <IconButton icon="refresh" label="Reset" onPress={onReset} />
+              <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
             </View>
           </>
           }
@@ -185,12 +183,8 @@ const styles = StyleSheet.create({
       bottom: 5,
     },
     optionsRow: {
-      alignItems: 'center',
       flexDirection: 'row',
-    },
-    vcontainer: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: "space-between",
+      marginHorizontal: 30
     },
   });
