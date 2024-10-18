@@ -40,7 +40,7 @@ export default function PostsScreen() {
           data: bodyFormData,
           headers: { "Content-Type": "multipart/form-data" },
         }).then((Response)=>{
-          setMaker('data:image/png;base64,'+Response.data.img)
+          setMaker(Response.data.img)
         })
 
       }catch (error){
@@ -100,6 +100,10 @@ export default function PostsScreen() {
         }
       }
     };
+
+    const onReset = () => {
+      setMaker('');
+    };
     
     return (
       <ScrollView contentContainerStyle={styles.container}>
@@ -120,11 +124,12 @@ export default function PostsScreen() {
           {maker!='' ? 
               <>
                 <View collapsable={false} >
-                  <Image ref={imageRef} source={{ uri: maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
+                  <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
                 </View>
+                <IconButton icon="refresh" label="Reset" onPress={onReset} />
                 <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
               </>
-          : null}
+          : <></>}
           </View>
         </ScrollView>
     );
@@ -150,7 +155,7 @@ const styles = StyleSheet.create({
     button: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 12,
+      paddingVertical: 6,
       paddingHorizontal: 32,
       borderRadius: 4,
       elevation: 3,
@@ -166,8 +171,6 @@ const styles = StyleSheet.create({
     input: {
       height: 30,
       width: 350,
-      margin: 1,
       borderWidth: 1,
-      padding: 1,
     },
   });
