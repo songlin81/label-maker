@@ -1,66 +1,140 @@
-import { Text, View, StyleSheet, FlatList } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { Text, View, StyleSheet, Image, TextInput, Pressable, Platform } from 'react-native';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
-import i18n from 'i18next';
-
-const API_URL = 'https://jsonplaceholder.typicode.com/posts';
+import IconButton from '@/components/IconButton';
+import { captureRef } from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
+import domtoimage from 'dom-to-image';
+import { ScrollView } from 'react-native';
 
 export default function PostsScreen() {
 
-    const [data, setData] = useState<any[]>([]);
+    const [maker, setMaker] = useState('')
+    const fetchLabelMaker = async (
+      origin_text:string,
+      pack_text:string,
+      variant_text:string,
+      vo_text:string,
+      label_part_number:string,
+      description_text:string,
+      content:string,
+      secret:string
+    ) => {
+      const url='https://labelmaker-api.azurewebsites.net/v1/label';
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+      var bodyFormData = new FormData();
+      bodyFormData.append('origin_text', origin_text);
+      bodyFormData.append('pack_text', pack_text);
+      bodyFormData.append('variant_text', variant_text);
+      bodyFormData.append('vo_text', vo_text);
+      bodyFormData.append('label_part_number', label_part_number);
+      bodyFormData.append('content', content);
+      bodyFormData.append('secret', secret);
+      bodyFormData.append('description_text', description_text);
+      bodyFormData.append('format', '1');
 
-    const fetchData = async () => {
-        try {
-            const response = await axios.get(API_URL);
-            setData(response.data);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
+      try{
+        await axios({
+          method: "post",
+          url: url,
+          data: bodyFormData,
+          headers: { "Content-Type": "multipart/form-data" },
+        }).then((Response)=>{
+          setMaker('data:image/png;base64,'+Response.data.img)
+        })
+
+      }catch (error){
+        console.error(error);
+      }
+    }
+
+    // useEffect(() => {
+    //     fetchLabelMaker();
+    // }, []);
+
+    const [votext, onChangeVOText] = React.useState('VO 123 45 678')
+    const [packtext, onChangePackText] = React.useState('Pack of: 10 Pcs')
+    const [descriptiontext, onChangeDescriptionText] = React.useState('Parts description')
+    const [varianttext, onChangeVariantText] = React.useState('E - 25 00')
+    const [origintext, onChangeOriginText] = React.useState('Made in United Kingdom')
+    const [labelpartnumbertext, onChangeLabelPartNumberText] = React.useState('label part 1234')
+    const [contenttext, onContentText] = React.useState('https://www.volvogroup.com')
+    const [secrettext, onSecretText] = React.useState('volvo energy')
+
+    const generateLabel = () => {
+      fetchLabelMaker(origintext, packtext, varianttext, votext, labelpartnumbertext, descriptiontext, contenttext, secrettext)
     };
 
-    const lngs : any= {
-      en: { nativeName: 'English' },
-      pl: { nativeName: 'Polish' }
+    const imageRef = useRef(null);
+    
+    const onSaveImageAsync = async () => {
+      if (Platform.OS !== 'web') {
+        try {
+          const localUri = await captureRef(imageRef, {
+            height: 330,
+            quality: 1,
+          });
+  
+          await MediaLibrary.saveToLibraryAsync(localUri);
+          if (localUri) {
+            alert('Saved!');
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      } else {
+        try {
+          if(imageRef.current){
+            const dataUrl = await domtoimage.toJpeg(imageRef.current, {
+              quality: 0.95,
+              width: 330,
+              height: 330,
+            });
+            let link = document.createElement('a');
+            link.download = 'label.png';
+            link.href = dataUrl;
+            link.click();
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
     };
     
     return (
-        <View style={styles.container}>
-          <div>
-            {Object.keys(lngs).map((lng) => (
-              <button key={lng} 
-                style={{ fontWeight: i18n.resolvedLanguage === lng ? 'bold' : 'normal' }}
-                type="submit" 
-                onClick={() => i18n.changeLanguage(lng)}>
-                {lngs[lng].nativeName}
-              </button>
-            ))}
-          </div>
-          <Text style={styles.title}>Making Label Maker API Requests</Text>
-          <FlatList
-            data={data}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => (
-              <View style={styles.item}>
-                <Text>{item?.title}</Text>
-              </View>
-            )}
-          />
-        </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View>
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onContentText(text)} value={contenttext} />
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVOText(text)} value={votext} />
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangePackText(text)} value={packtext} />
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeDescriptionText(text)} value={descriptiontext} />
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVariantText(text)} value={varianttext} />
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeOriginText(text)} value={origintext} />
+          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeLabelPartNumberText(text)} value={labelpartnumbertext} />
+
+          <Pressable style={styles.button} onPress={generateLabel}>
+            <Text style={styles.text}>Generate label</Text>
+          </Pressable>
+
+          {maker!='' ? 
+              <>
+                <View collapsable={false} >
+                  <Image ref={imageRef} source={{ uri: maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
+                </View>
+                <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
+              </>
+          : null}
+          </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-      marginTop:70,
       flex: 1,
       justifyContent:'center',
       alignItems:'center',
-      padding: 16,
-      backgroundColor: '#fff',
     },
     title: {
       fontSize: 24,
@@ -72,5 +146,28 @@ const styles = StyleSheet.create({
       padding: 10,
       marginVertical: 8,
       borderRadius: 8,
+    },
+    button: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      borderRadius: 4,
+      elevation: 3,
+      backgroundColor: 'black',
+    },
+    text: {
+      fontSize: 16,
+      lineHeight: 21,
+      fontWeight: 'bold',
+      letterSpacing: 0.25,
+      color: 'white',
+    },
+    input: {
+      height: 30,
+      width: 350,
+      margin: 1,
+      borderWidth: 1,
+      padding: 1,
     },
   });

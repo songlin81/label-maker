@@ -113,8 +113,8 @@ export default function Index() {
           </View>
         ) : (
           <View style={styles.footerContainer}>
-            <Button theme="primary" label={t('scan-qr')} onPress={pickImageAsync} />
-            <Button theme="primary" label={t('save-qr')} onPress={() => setShowAppOptions(true)} />
+            <Button theme="primary" label="Scan QR" onPress={pickImageAsync} />
+            <Button theme="primary" label="Save QR" onPress={() => setShowAppOptions(true)} />
           </View>
         )}
         <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
