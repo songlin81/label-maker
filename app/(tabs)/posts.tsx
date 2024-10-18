@@ -108,28 +108,34 @@ export default function PostsScreen() {
     return (
       <ScrollView contentContainerStyle={styles.container}>
         <View>
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onContentText(text)} value={contenttext} />
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVOText(text)} value={votext} />
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangePackText(text)} value={packtext} />
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeDescriptionText(text)} value={descriptiontext} />
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVariantText(text)} value={varianttext} />
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeOriginText(text)} value={origintext} />
-          <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeLabelPartNumberText(text)} value={labelpartnumbertext} />
+        {maker == '' ?
+          <>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onContentText(text)} value={contenttext} />
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVOText(text)} value={votext} />
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangePackText(text)} value={packtext} />
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeDescriptionText(text)} value={descriptiontext} />
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVariantText(text)} value={varianttext} />
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeOriginText(text)} value={origintext} />
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeLabelPartNumberText(text)} value={labelpartnumbertext} />
 
-          <Pressable style={styles.button} onPress={generateLabel}>
-            <Text style={styles.text}>Generate label</Text>
-          </Pressable>
-
-          {maker!='' ? 
-              <>
-                <View collapsable={false} >
-                  <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
-                </View>
+            <Pressable style={styles.button} onPress={generateLabel}>
+              <Text style={styles.text}>Generate label</Text>
+            </Pressable>
+          </>
+        :
+          <>
+            <View collapsable={false} >
+              <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
+            </View>
+            <View style={styles.vcontainer}>
+              <View style={styles.optionsRow}>
                 <IconButton icon="refresh" label="Reset" onPress={onReset} />
                 <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
-              </>
-          : <></>}
+              </View>
+            </View>
+          </>
+          }
           </View>
         </ScrollView>
     );
@@ -172,5 +178,19 @@ const styles = StyleSheet.create({
       height: 30,
       width: 350,
       borderWidth: 1,
+      padding: 2
+    },
+    optionsContainer: {
+      position: 'absolute',
+      bottom: 5,
+    },
+    optionsRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    vcontainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });

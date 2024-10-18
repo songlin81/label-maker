@@ -14,7 +14,6 @@ import { useRef } from 'react';
 import { captureRef } from "react-native-view-shot";
 import domtoimage from 'dom-to-image';
 import { StatusBar } from 'expo-status-bar';
-import { useTranslation } from 'react-i18next';
 
 const PlaceholderImage = require('../../assets/images/background-image.png');
 
@@ -27,8 +26,6 @@ export default function Index() {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [pickedEmoji, setPickedEmoji] = useState<string | undefined>(undefined);
   const [status, requestPermission] = MediaLibrary.usePermissions();
-
-  const { t } = useTranslation();
 
   if (status === null) {
     requestPermission();
