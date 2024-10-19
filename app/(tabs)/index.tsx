@@ -1,73 +1,92 @@
-import { View, StyleSheet, Platform } from 'react-native';
-import ImageViewer from "@/components/ImageViewer";
-import Button from '@/components/Button';
-import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { Text, View, StyleSheet, Image, TextInput, Pressable, Platform, Alert } from 'react-native';
+import React, { useState, useRef } from 'react';
+import axios from 'axios';
 import IconButton from '@/components/IconButton';
-import CircleButton from '@/components/CircleButton';
-import EmojiPicker from '@/components/EmojiPicker';
-import EmojiList from '@/components/EmojiList';
-import EmojiSticker from '@/components/EmojiSticker';
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
-import { useRef } from 'react';
-import { captureRef } from "react-native-view-shot";
 import domtoimage from 'dom-to-image';
+import { ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-
-const PlaceholderImage = require('../../assets/images/background-image.png');
 
 export default function Index() {
 
-  const imageRef = useRef(null);
-
-  const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
-  const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [pickedEmoji, setPickedEmoji] = useState<string | undefined>(undefined);
   const [status, requestPermission] = MediaLibrary.usePermissions();
 
   if (status === null) {
     requestPermission();
   }
 
-  const pickImageAsync = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      quality: 1,
-    });
+  const [maker, setMaker] = useState('')
+  const fetchLabelMaker = async (
+    origin_text:string,
+    pack_text:string,
+    variant_text:string,
+    vo_text:string,
+    label_part_number:string,
+    description_text:string,
+    content:string,
+    secret:string
+  ) => {
+    const url='https://labelmaker-api.azurewebsites.net/v1/label';
 
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-      setShowAppOptions(true);
-    } else {
-      alert('You did not select any image.');
+    var bodyFormData = new FormData();
+    bodyFormData.append('origin_text', origin_text);
+    bodyFormData.append('pack_text', pack_text);
+    bodyFormData.append('variant_text', variant_text);
+    bodyFormData.append('vo_text', vo_text);
+    bodyFormData.append('label_part_number', label_part_number);
+    bodyFormData.append('content', content);
+    bodyFormData.append('secret', secret);
+    bodyFormData.append('description_text', description_text);
+    bodyFormData.append('format', '1');
+
+    try{
+      await axios({
+        method: "post",
+        url: url,
+        data: bodyFormData,
+        headers: { "Content-Type": "multipart/form-data" },
+      }).then((Response)=>{
+        setMaker(Response.data.img)
+      })
+
+    }catch (error){
+      console.error(error);
     }
+  }
+
+  // useEffect(() => {
+  //     fetchLabelMaker();
+  // }, []);
+
+  const [votext, onChangeVOText] = React.useState('VO 123 45 678')
+  const [packtext, onChangePackText] = React.useState('Pack of: 10 Pcs')
+  const [descriptiontext, onChangeDescriptionText] = React.useState('Parts description')
+  const [varianttext, onChangeVariantText] = React.useState('E - 25 00')
+  const [origintext, onChangeOriginText] = React.useState('Made in United Kingdom')
+  const [labelpartnumbertext, onChangeLabelPartNumberText] = React.useState('label part 1234')
+  const [contenttext, onContentText] = React.useState('https://www.volvogroup.com')
+  const [secrettext, onSecretText] = React.useState('volvo energy')
+
+  const generateLabel = () => {
+    fetchLabelMaker(origintext, packtext, varianttext, votext, labelpartnumbertext, descriptiontext, contenttext, secrettext)
   };
 
-  const onReset = () => {
-    setShowAppOptions(false);
-  };
-
-  const onAddSticker = () => {
-    setIsModalVisible(true);
-  };
-
-  const onModalClose = () => {
-    setIsModalVisible(false);
-  };
-
+  const imageRef = useRef(null);
+  
   const onSaveImageAsync = async () => {
     if (Platform.OS !== 'web') {
       try {
         const localUri = await captureRef(imageRef, {
-          height: 440,
+          height: 330,
           quality: 1,
         });
 
         await MediaLibrary.saveToLibraryAsync(localUri);
         if (localUri) {
-          alert('Saved!');
+          Alert.alert('Label image', 'Image saved successfully!', [
+            {text: 'OK', onPress: () => console.log('OK Pressed')},
+          ]);
         }
       } catch (e) {
         console.log(e);
@@ -77,11 +96,11 @@ export default function Index() {
         if(imageRef.current){
           const dataUrl = await domtoimage.toJpeg(imageRef.current, {
             quality: 0.95,
-            width: 320,
-            height: 440,
+            width: 330,
+            height: 330,
           });
           let link = document.createElement('a');
-          link.download = 'sticker-smash.jpeg';
+          link.download = 'label.png';
           link.href = dataUrl;
           link.click();
         }
@@ -91,57 +110,127 @@ export default function Index() {
     }
   };
 
+  const onClear = () => {
+    setMaker('');
+    onChangeVOText('');
+    onChangePackText('');
+    onChangeDescriptionText('');
+    onChangeVariantText('');
+    onChangeOriginText('');
+    onChangeLabelPartNumberText('');
+    onContentText('');
+    onSecretText('');
+  };
+  
+  const onReset = () => {
+    setMaker('');
+    onChangeVOText('VO 123 45 678');
+    onChangePackText('Pack of: 10 Pcs');
+    onChangeDescriptionText('Parts description');
+    onChangeVariantText('E - 25 00');
+    onChangeOriginText('Made in United Kingdom');
+    onChangeLabelPartNumberText('label part 1234');
+    onContentText('https://www.volvogroup.com');
+    onSecretText('volvo energy');
+  };
+
+  const [show, onShow] = React.useState(true)
+  const onToggleSecret = () => {
+    onShow(!show)
+  }
+  
   return (
     <>
-      <GestureHandlerRootView style={styles.container}>
-        <View style={styles.imageContainer}>
-          <View ref={imageRef} collapsable={false}>
-            <ImageViewer imgSource={PlaceholderImage} selectedImage={selectedImage} />
-            {pickedEmoji && <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />}
-          </View>
-        </View>
-        {showAppOptions ? (
-          <View style={styles.optionsContainer}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View>
+        {maker == '' ?
+          <>
+            <Text>Public content:</Text>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onContentText(text)} value={contenttext} />
+            <Text onPress={onToggleSecret}>Secret content (Click to show):</Text>
+            <TextInput style={styles.input} secureTextEntry={show} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
+            <Text>VO:</Text>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVOText(text)} value={votext} />
+            <Text>Package</Text>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangePackText(text)} value={packtext} />
+            <Text>Description:</Text>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeDescriptionText(text)} value={descriptiontext} />
+            <Text>Variant:</Text>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVariantText(text)} value={varianttext} />
+            <Text>Place:</Text>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeOriginText(text)} value={origintext} />
+            <Text>Label number:</Text>
+            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeLabelPartNumberText(text)} value={labelpartnumbertext} />
+
+            <Pressable style={styles.button} onPress={generateLabel}>
+              <Text style={styles.text}>Generate label</Text>
+            </Pressable>
+          </>
+        :
+          <>
+            <View collapsable={false} >
+              <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
+            </View>
             <View style={styles.optionsRow}>
-              <IconButton icon="refresh" label="Reset" onPress={onReset} />
-              <CircleButton onPress={onAddSticker} />
+              <IconButton icon="refresh" label="Clear" onPress={onClear} />
+              <IconButton icon="description" label="Reset" onPress={onReset} />
               <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
             </View>
+          </>
+          }
           </View>
-        ) : (
-          <View style={styles.footerContainer}>
-            <Button theme="primary" label="Scan QR" onPress={pickImageAsync} />
-            <Button theme="primary" label="Save QR" onPress={() => setShowAppOptions(true)} />
-          </View>
-        )}
-        <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
-          <EmojiList onSelect={setPickedEmoji} onCloseModal={onModalClose} />
-        </EmojiPicker>
-      </GestureHandlerRootView>
-      <StatusBar style="light" />
-    </>
+        </ScrollView>
+        <StatusBar style="light" />
+      </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
-     alignItems: 'center',
+    justifyContent:'center',
+    alignItems:'center',
   },
-  imageContainer: {
-    flex: 1,
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
-  footerContainer: {
-    flex: 1 / 3,
+  item: {
+    backgroundColor: '#f5f5f5',
+    padding: 10,
+    marginVertical: 8,
+    borderRadius: 8,
+  },
+  button: {
+    marginTop: 4,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+    elevation: 3,
+    backgroundColor: 'black',
+  },
+  text: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  input: {
+    height: 25,
+    width: 350,
+    borderWidth: 1,
+    padding: 2
   },
   optionsContainer: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 5,
   },
   optionsRow: {
-    alignItems: 'center',
     flexDirection: 'row',
+    justifyContent: "space-between",
+    marginHorizontal: 30
   },
 });
