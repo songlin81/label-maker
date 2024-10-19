@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, Image, TextInput, Pressable, Platform } from 'react-native';
+import { Text, View, StyleSheet, Image, TextInput, Pressable, Platform, Alert } from 'react-native';
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import IconButton from '@/components/IconButton';
@@ -77,7 +77,9 @@ export default function PostsScreen() {
   
           await MediaLibrary.saveToLibraryAsync(localUri);
           if (localUri) {
-            alert('Saved!');
+            Alert.alert('Label image', 'Image saved successfully!', [
+              {text: 'OK', onPress: () => console.log('OK Pressed')},
+            ]);
           }
         } catch (e) {
           console.log(e);
@@ -101,7 +103,7 @@ export default function PostsScreen() {
       }
     };
 
-    const onReset = () => {
+    const onClear = () => {
       setMaker('');
       onChangeVOText('');
       onChangePackText('');
@@ -113,6 +115,18 @@ export default function PostsScreen() {
       onSecretText('');
     };
     
+    const onReset = () => {
+      setMaker('');
+      onChangeVOText('VO 123 45 678');
+      onChangePackText('Pack of: 10 Pcs');
+      onChangeDescriptionText('Parts description');
+      onChangeVariantText('E - 25 00');
+      onChangeOriginText('Made in United Kingdom');
+      onChangeLabelPartNumberText('label part 1234');
+      onContentText('https://www.volvogroup.com');
+      onSecretText('volvo energy');
+    };
+
     const [show, onShow] = React.useState(true)
     const onToggleSecret = () => {
       onShow(!show)
@@ -125,7 +139,7 @@ export default function PostsScreen() {
           <>
             <Text>Public content:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onContentText(text)} value={contenttext} />
-            <Text onPress={onToggleSecret}>Secret content (Click me to show):</Text>
+            <Text onPress={onToggleSecret}>Secret content (Click to show):</Text>
             <TextInput style={styles.input} secureTextEntry={show} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
             <Text>VO:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVOText(text)} value={votext} />
@@ -150,7 +164,8 @@ export default function PostsScreen() {
               <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
             </View>
             <View style={styles.optionsRow}>
-              <IconButton icon="refresh" label="Reset" onPress={onReset} />
+              <IconButton icon="refresh" label="Clear" onPress={onClear} />
+              <IconButton icon="description" label="Reset" onPress={onReset} />
               <IconButton icon="save-alt" label="Save" onPress={onSaveImageAsync} />
             </View>
           </>
@@ -178,6 +193,7 @@ const styles = StyleSheet.create({
       borderRadius: 8,
     },
     button: {
+      marginTop: 4,
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 6,
@@ -190,7 +206,6 @@ const styles = StyleSheet.create({
       fontSize: 16,
       lineHeight: 21,
       fontWeight: 'bold',
-      letterSpacing: 0.25,
       color: 'white',
     },
     input: {
