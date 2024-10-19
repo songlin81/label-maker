@@ -103,20 +103,41 @@ export default function PostsScreen() {
 
     const onReset = () => {
       setMaker('');
+      onChangeVOText('');
+      onChangePackText('');
+      onChangeDescriptionText('');
+      onChangeVariantText('');
+      onChangeOriginText('');
+      onChangeLabelPartNumberText('');
+      onContentText('');
+      onSecretText('');
     };
+    
+    const [show, onShow] = React.useState(true)
+    const onToggleSecret = () => {
+      onShow(!show)
+    }
     
     return (
       <ScrollView contentContainerStyle={styles.container}>
         <View>
         {maker == '' ?
           <>
+            <Text>Public content:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onContentText(text)} value={contenttext} />
-            <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
+            <Text onPress={onToggleSecret}>Secret content (Click me to show):</Text>
+            <TextInput style={styles.input} secureTextEntry={show} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
+            <Text>VO:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVOText(text)} value={votext} />
+            <Text>Package</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangePackText(text)} value={packtext} />
+            <Text>Description:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeDescriptionText(text)} value={descriptiontext} />
+            <Text>Variant:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVariantText(text)} value={varianttext} />
+            <Text>Place:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeOriginText(text)} value={origintext} />
+            <Text>Label number:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeLabelPartNumberText(text)} value={labelpartnumbertext} />
 
             <Pressable style={styles.button} onPress={generateLabel}>
@@ -146,7 +167,7 @@ const styles = StyleSheet.create({
       alignItems:'center',
     },
     title: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: 'bold',
       marginBottom: 16,
     },
@@ -173,7 +194,7 @@ const styles = StyleSheet.create({
       color: 'white',
     },
     input: {
-      height: 30,
+      height: 25,
       width: 350,
       borderWidth: 1,
       padding: 2
