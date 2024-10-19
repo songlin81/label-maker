@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, Image, TextInput, Pressable, Platform, Alert } from 'react-native';
+import { Text, View, StyleSheet, Image, TextInput, Pressable, Platform, Alert, ActivityIndicator } from 'react-native';
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import IconButton from '@/components/IconButton';
@@ -48,8 +48,8 @@ export default function Index() {
         headers: { "Content-Type": "multipart/form-data" },
       }).then((Response)=>{
         setMaker(Response.data.img)
+        onSaved(false);
       })
-
     }catch (error){
       console.error(error);
     }
@@ -69,7 +69,8 @@ export default function Index() {
   const [secrettext, onSecretText] = React.useState('volvo energy')
 
   const generateLabel = () => {
-    fetchLabelMaker(origintext, packtext, varianttext, votext, labelpartnumbertext, descriptiontext, contenttext, secrettext)
+    onSaved(true);
+    fetchLabelMaker(origintext, packtext, varianttext, votext, labelpartnumbertext, descriptiontext, contenttext, secrettext);
   };
 
   const imageRef = useRef(null);
@@ -139,6 +140,8 @@ export default function Index() {
     onShow(!show)
   }
   
+  const [saved, onSaved] = React.useState(false)
+  
   return (
     <>
       <ScrollView contentContainerStyle={styles.container}>
@@ -164,6 +167,7 @@ export default function Index() {
 
             <Pressable style={styles.button} onPress={generateLabel}>
               <Text style={styles.text}>Generate label</Text>
+              <ActivityIndicator animating={saved} size="small" color="#ffffff" />
             </Pressable>
           </>
         :
@@ -203,7 +207,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   button: {
-    marginTop: 4,
+    flexDirection: 'row',
+    marginTop: 20,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,
@@ -222,7 +227,8 @@ const styles = StyleSheet.create({
     height: 25,
     width: 350,
     borderWidth: 1,
-    padding: 2
+    padding: 2,
+    borderRadius: 4,
   },
   optionsContainer: {
     position: 'absolute',
