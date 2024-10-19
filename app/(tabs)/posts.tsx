@@ -14,7 +14,7 @@ import { useRef } from 'react';
 import { captureRef } from "react-native-view-shot";
 import domtoimage from 'dom-to-image';
 
-const PlaceholderImage = require('../../assets/images/background-image.png');
+const PlaceholderImage = require('../../assets/images/download.png');
 
 export default function PostsScreen() {
 

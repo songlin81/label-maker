@@ -148,21 +148,21 @@ export default function Index() {
         <View>
         {maker == '' ?
           <>
-            <Text>Public content:</Text>
+            <Text style={styles.title}>Public content:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onContentText(text)} value={contenttext} />
-            <Text onPress={onToggleSecret}>Secret content (Click to show):</Text>
+            <Text style={styles.title} onPress={onToggleSecret}>Secret content (Click to show):</Text>
             <TextInput style={styles.input} secureTextEntry={show} editable numberOfLines={1} maxLength={80} onChangeText={text => onSecretText(text)} value={secrettext} />
-            <Text>VO:</Text>
+            <Text style={styles.title}>VO:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVOText(text)} value={votext} />
-            <Text>Package</Text>
+            <Text style={styles.title}>Package</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangePackText(text)} value={packtext} />
-            <Text>Description:</Text>
+            <Text style={styles.title}>Description:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeDescriptionText(text)} value={descriptiontext} />
-            <Text>Variant:</Text>
+            <Text style={styles.title}>Variant:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeVariantText(text)} value={varianttext} />
-            <Text>Place:</Text>
+            <Text style={styles.title}>Place:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeOriginText(text)} value={origintext} />
-            <Text>Label number:</Text>
+            <Text style={styles.title}>Label number:</Text>
             <TextInput style={styles.input} editable numberOfLines={1} maxLength={80} onChangeText={text => onChangeLabelPartNumberText(text)} value={labelpartnumbertext} />
 
             <Pressable style={styles.button} onPress={generateLabel}>
@@ -196,9 +196,7 @@ const styles = StyleSheet.create({
     alignItems:'center',
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    fontFamily: 'VolvoNovum3Italic'
   },
   item: {
     backgroundColor: '#f5f5f5',
@@ -220,8 +218,8 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     lineHeight: 21,
-    fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'VolvoNovum3Bold'
   },
   input: {
     height: 25,
@@ -229,6 +227,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 2,
     borderRadius: 4,
+    fontFamily: 'VolvoNovum3Bold'
   },
   optionsContainer: {
     position: 'absolute',

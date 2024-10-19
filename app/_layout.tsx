@@ -8,9 +8,11 @@ import 'react-native-reanimated';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+
   const [loaded] = useFonts({
-    //SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    SpaceMono: require('../assets/fonts/VolvoNovum3-Bold.ttf'),
+    VolvoNovum3Bold: require('../assets/fonts/VolvoNovum3-Bold.ttf'),
+    VolvoNovum3Italic: require('../assets/fonts/VolvoNovum3-Italic.ttf'),
+    VolvoNovum3BoldItalic: require('../assets/fonts/VolvoNovum3-BoldItalic.ttf'),
   });
 
   useEffect(() => {
