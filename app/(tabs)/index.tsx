@@ -7,6 +7,8 @@ import * as MediaLibrary from 'expo-media-library';
 import domtoimage from 'dom-to-image';
 import { ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import FileSystem  from 'expo-file-system';
+import shareAsync from 'expo-sharing';
 
 export default function Index() {
 
@@ -48,6 +50,7 @@ export default function Index() {
         headers: { "Content-Type": "multipart/form-data" },
       }).then((Response)=>{
         setMaker(Response.data.img)
+        setRawData('data:image/png;base64,'+Response.data.img)
         onSaved(false);
       })
     }catch (error){
@@ -67,6 +70,7 @@ export default function Index() {
   const [labelpartnumbertext, onChangeLabelPartNumberText] = React.useState('label part 1234')
   const [contenttext, onContentText] = React.useState('https://www.volvogroup.com')
   const [secrettext, onSecretText] = React.useState('volvo energy')
+  const [rawData, setRawData] = React.useState('')
 
   const generateLabel = () => {
     onSaved(true);
@@ -75,11 +79,45 @@ export default function Index() {
 
   const imageRef = useRef(null);
   
+  function getFileFromBase64(string64:string, fileName:string) {
+    const trimmedString = string64.replace('data:image/png;base64,', '');
+    const imageContent = atob(trimmedString);
+    const buffer = new ArrayBuffer(imageContent.length);
+    const view = new Uint8Array(buffer);
+  
+    for (let n = 0; n < imageContent.length; n++) {
+      view[n] = imageContent.charCodeAt(n);
+    }
+    const type = 'image/png';
+    const blob = new Blob([buffer], { type });
+    return new File([blob], fileName, { lastModified: new Date().getTime(), type });
+  }
+
+  async function saveFile(uri : any, filename: any, mimetype: any) {
+    if (Platform.OS === "android") {
+      const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+  
+      if (permissions.granted) {
+        const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+  
+        await FileSystem.StorageAccessFramework.createFileAsync(permissions.directoryUri, filename, mimetype)
+          .then(async (uri) => {
+            await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+          })
+          .catch(e => console.log(e));
+      } else {
+        shareAsync.shareAsync(uri);
+      }
+    } else {
+      shareAsync.shareAsync(uri);
+    }
+  }
+
   const onSaveImageAsync = async () => {
     if (Platform.OS !== 'web') {
       try {
         const localUri = await captureRef(imageRef, {
-          height: 330,
+          //height: 330,
           quality: 1,
         });
 
@@ -95,11 +133,16 @@ export default function Index() {
     } else {
       try {
         if(imageRef.current){
-          const dataUrl = await domtoimage.toJpeg(imageRef.current, {
-            quality: 0.95,
-            width: 330,
-            height: 330,
+          const dataUrl = await domtoimage.toPng(imageRef.current, {
+            quality: 1,
+            // width: 330,
+            // height: 330,
           });
+          // const dataUrl = await domtoimage.toPng(rawData, {
+          //   quality: 1,
+          //   // width: 330,
+          //   // height: 330,
+          // });
           let link = document.createElement('a');
           link.download = 'label.png';
           link.href = dataUrl;
@@ -173,7 +216,7 @@ export default function Index() {
         :
           <>
             <View collapsable={false} >
-              <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330, margin: 5, padding: 5 }} />
+              <Image ref={imageRef} source={{ uri: 'data:image/png;base64,'+maker }} style={{width: 330, height: 330}} />
             </View>
             <View style={styles.optionsRow}>
               <IconButton icon="refresh" label="Clear" onPress={onClear} />

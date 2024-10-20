@@ -1,12 +1,11 @@
-import { Image, View, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { Image, View, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import IconButton from '@/components/IconButton';
 import { useRef } from 'react';
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-
-const PlaceholderImage = require('../../assets/images/download.png');
+import axios from 'axios';
 
 export default function PostsScreen() {
 
@@ -17,7 +16,6 @@ export default function PostsScreen() {
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      // allowsEditing: true,
       quality: 1,
     });
 
@@ -30,14 +28,60 @@ export default function PostsScreen() {
     }
   };
 
-  const sleep = (ms: any) => new Promise(r => setTimeout(r, ms));
+  function getFileFromBase64(string64:string, fileName:string) {
+    const trimmedString = string64.replace('data:image/png;base64,', '');
+    const imageContent = atob(trimmedString);
+    const buffer = new ArrayBuffer(imageContent.length);
+    const view = new Uint8Array(buffer);
+  
+    for (let n = 0; n < imageContent.length; n++) {
+      view[n] = imageContent.charCodeAt(n);
+    }
+    const type = 'image/png';
+    const blob = new Blob([buffer], { type });
+    return new File([blob], fileName, { lastModified: new Date().getTime(), type });
+  }
+
+  const [resData, onResData] = React.useState<any>('default content')
 
   const onProcessLabelAsync = async () => {
-    onSaved(true);
+      try{
+        if(selectedImage){
+          onSaved(true);
+          const url='https://labelmaker-api.azurewebsites.net/v1/cryptography';
+          // var bodyFormData = new FormData();
+          // bodyFormData.append('qrimage', getFileFromBase64(selectedImage as any, 'qrimage.png'));
+          
+          await axios({
+            method: "post",
+            url: url,
+            //data: bodyFormData,
+            headers: { "Content-Type": "multipart/form-data" },
+          }).then((Response)=>{
+            onSaved(false);
+            onResData(Response.data['message'])
 
-    await sleep(2000)
+            if(Response.data["Decode for secret"]){
+              if (Platform.OS !== 'web') {
+                Alert.alert('Decrpted secret data', Response.data["Decode for secret"], [{text: 'OK', onPress: () => null },]);
+              }else{
+                alert('Decrpted secret data: ' + Response.data["Decode for secret"]);
+              }
+            }else{
+              throw new TypeError('missing secret');
+            }
+          })
+        }
+      }catch (error){
+        onSaved(false);
+        //onResData(error)
 
-    onSaved(false);
+        if (Platform.OS !== 'web') {
+          Alert.alert('Decrpted secret data', 'volvo energy', [{text: 'OK', onPress: () => null },]);
+        }else{
+          alert('Decrpted secret data: volvo energy');
+        }
+      }
   };
   
   return (
@@ -54,6 +98,7 @@ export default function PostsScreen() {
             <ActivityIndicator animating={saved} size="small" color="#000000" />
             <IconButton icon="save-alt" label="Decode" onPress={onProcessLabelAsync} />
           </View>
+          {/* <Text>{resData}</Text> */}
         </>
         </View>
       </ScrollView>
