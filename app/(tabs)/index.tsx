@@ -4,7 +4,6 @@ import axios from 'axios';
 import IconButton from '@/components/IconButton';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
-import domtoimage from 'dom-to-image';
 import { ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import FileSystem  from 'expo-file-system';

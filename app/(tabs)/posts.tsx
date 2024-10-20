@@ -42,25 +42,29 @@ export default function PostsScreen() {
     return new File([blob], fileName, { lastModified: new Date().getTime(), type });
   }
 
-  const [resData, onResData] = React.useState<any>('default content')
-
   const onProcessLabelAsync = async () => {
       try{
         if(selectedImage){
           onSaved(true);
           const url='https://labelmaker-api.azurewebsites.net/v1/cryptography';
-          // var bodyFormData = new FormData();
-          // bodyFormData.append('qrimage', getFileFromBase64(selectedImage as any, 'qrimage.png'));
-          
+          var bodyFormData = new FormData();
+          if (Platform.OS !== 'web') {
+            bodyFormData.append("qrimage", {
+                uri: selectedImage,
+                name: "image",
+                type: "image/png"
+            },'qrimage.png');
+          }else{
+            bodyFormData.append('qrimage', getFileFromBase64(selectedImage as any, 'qrimage.png'));
+          }
+
           await axios({
             method: "post",
             url: url,
-            //data: bodyFormData,
+            data: bodyFormData,
             headers: { "Content-Type": "multipart/form-data" },
           }).then((Response)=>{
             onSaved(false);
-            onResData(Response.data['message'])
-
             if(Response.data["Decode for secret"]){
               if (Platform.OS !== 'web') {
                 Alert.alert('Decrpted secret data', Response.data["Decode for secret"], [{text: 'OK', onPress: () => null },]);
@@ -74,13 +78,6 @@ export default function PostsScreen() {
         }
       }catch (error){
         onSaved(false);
-        //onResData(error)
-
-        if (Platform.OS !== 'web') {
-          Alert.alert('Decrpted secret data', 'volvo energy', [{text: 'OK', onPress: () => null },]);
-        }else{
-          alert('Decrpted secret data: volvo energy');
-        }
       }
   };
   
