@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
   optionsRow: {
     flexDirection: 'row',
     justifyContent: "space-between",
-    marginHorizontal: 30
+    marginHorizontal: 30,
+    marginTop: 20,
   },
 });
