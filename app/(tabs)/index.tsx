@@ -117,7 +117,6 @@ export default function Index() {
     if (Platform.OS !== 'web') {
       try {
         const localUri = await captureRef(imageRef, {
-          //height: 330,
           quality: 1,
         });
 
@@ -132,20 +131,10 @@ export default function Index() {
       }
     } else {
       try {
-        if(imageRef.current){
-          const dataUrl = await domtoimage.toPng(imageRef.current, {
-            quality: 1,
-            // width: 330,
-            // height: 330,
-          });
-          // const dataUrl = await domtoimage.toPng(rawData, {
-          //   quality: 1,
-          //   // width: 330,
-          //   // height: 330,
-          // });
+        if(imageRef.current){        
           let link = document.createElement('a');
           link.download = 'label.png';
-          link.href = dataUrl;
+          link.href = rawData;
           link.click();
         }
       } catch (e) {
