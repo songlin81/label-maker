@@ -1,4 +1,4 @@
-import { Image, View, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, Text } from 'react-native';
+import { Image, View, StyleSheet, ScrollView, ActivityIndicator, Alert, Platform, Text, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import IconButton from '@/components/IconButton';
@@ -6,7 +6,9 @@ import { useRef } from 'react';
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
-
+import { CameraView, FlashMode, useCameraPermissions } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
+ 
 export default function PostsScreen() {
 
   const imageRef = useRef(null);
@@ -14,6 +16,7 @@ export default function PostsScreen() {
   const [saved, onSaved] = React.useState(false)
 
   const pickImageAsync = async () => {
+    setImgData(false);
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
@@ -44,6 +47,7 @@ export default function PostsScreen() {
 
   const onProcessLabelAsync = async () => {
       try{
+        //setImgData(true);
         if(selectedImage){
           onSaved(true);
           const url='https://labelmaker-api.azurewebsites.net/v1/cryptography';
@@ -67,9 +71,10 @@ export default function PostsScreen() {
             onSaved(false);
             if(Response.data["Decode for secret"]){
               if (Platform.OS !== 'web') {
-                Alert.alert('Decrpted secret data', Response.data["Decode for secret"], [{text: 'OK', onPress: () => null },]);
+                Alert.alert('Decrpted secret data', Response.data["Decode for secret"], [{text: 'OK', onPress: () => setImgData(true) },]);
               }else{
                 alert('Decrpted secret data: ' + Response.data["Decode for secret"]);
+                setImgData(true);
               }
             }else{
               throw new TypeError('missing secret');
@@ -77,25 +82,85 @@ export default function PostsScreen() {
           })
         }
       }catch (error){
-        onSaved(false);
+        if (Platform.OS !== 'web') {
+          Alert.alert('Decrpted secret data', 'failure occurred please re-try', 
+          [{text: 'OK', onPress: () => {        
+            onSaved(false);
+            setImgData(true);
+          }},]);
+        }else{
+          alert('Decrpted secret data: failure occurred please re-try');
+          onSaved(false);
+          setImgData(true);
+        }
       }
   };
   
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef(null);
+  const [ImgData, setImgData] = useState(true);
+
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      await cameraRef.current?.takePictureAsync()
+        .then((photoData:any) => {
+          MediaLibrary.saveToLibraryAsync(photoData.uri);
+          cameraRef.current?.stopRecording();
+          setImgData(false);
+          setSelectedImage(photoData.uri);
+        });
+    }
+  };
+
+  const [torchMode, setFTorchMode] = React.useState<boolean>(false)
+  const __handleTorchMode = () => {
+    setFTorchMode(!torchMode);
+  }
+
   return (
     <>
     <ScrollView contentContainerStyle={styles.container}>
       <View>
         <>
-          <View collapsable={false} >
-            <Image ref={imageRef} source={{ uri: selectedImage }}
-              style={{width: 330, height: 330, margin: 5, padding: 5, backgroundColor: 'white' }} />
-          </View>
+          {permission?.granted && ImgData ? (
+              <View style={{width: 330, height: 330, flex: 1,}}>
+                <CameraView style={styles.camera} ref={cameraRef} enableTorch={torchMode} >
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: torchMode ? '#fff' : '#000',
+                        position: 'absolute',
+                        left: '2%',
+                        top: '6%',
+                        borderRadius: 50,
+                        height: 25,
+                        width: 25
+                      }}
+                      onPress={__handleTorchMode} >
+                      <Text
+                        style={{
+                          fontSize: 20
+                        }}
+                      >⚡️</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.button} onPress={takePicture}></TouchableOpacity>
+                  </View>
+                </CameraView>
+              </View>
+
+            ) : (
+              <View collapsable={false} >
+                <Image ref={imageRef} source={{ uri: selectedImage }} resizeMode="contain"
+                  style={{width: 330, height: 330, margin: 5, padding: 5, backgroundColor: 'white' }} />
+              </View>
+            )
+          }
+          <ActivityIndicator animating={saved} size="small" color="#000000" />
           <View style={styles.optionsRow}>
             <IconButton icon="camera" label="Pick" onPress={pickImageAsync} />
-            <ActivityIndicator animating={saved} size="small" color="#000000" />
-            <IconButton icon="save-alt" label="Decode" onPress={onProcessLabelAsync} />
+            <IconButton icon="photo-camera" label="Capture" onPress={requestPermission} />
+            <IconButton icon="checklist" label="Decode" onPress={onProcessLabelAsync} />
           </View>
-          {/* <Text>{resData}</Text> */}
         </>
         </View>
       </ScrollView>
@@ -114,6 +179,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: "space-between",
     marginTop: 20,
-    marginHorizontal: 30
+  },
+  camera: {
+    flex: 1,
+  },
+  message: {
+    textAlign: 'center',
+    paddingBottom: 10,
+  },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    margin: 32,
+  },
+  button: {
+    width: 50,
+    height: 50,
+    borderRadius: 35,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignSelf: 'flex-end',
+    alignItems: 'center',
   },
 });
